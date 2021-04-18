@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>chatting</title>
+</head>
+<body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    
+    <script>
+        
+        var isScroll = true
+        let socket = io()
+        setTimeout(() => {
+            document.getElementById('showUserName').innerText = document.getElementById('name').value
+        }, 100)
+            
+            socket.on('chat', comment => {
+                let chat = document.getElementById('chat')
+                let date = new Date()
+                let time = date.getHours()
+                let min = date.getMinutes()
+                if(date.getHours() > 12) time = date.getHours() - 12
+                chat.innerHTML += `
+                <td class="userchat">[${comment.name} / ${time}:${min}] <br /> ${comment.msg}</td>
+                `
+                if(isScroll === true) {
+                    document.getElementById('chatarea').scroll({
+                        top: 1000000,
+                        left: 0,
+                        behavior: 'smooth'
+                    })
+                }
+            })
+        
+            socket.on('user', (count) => {
+                console.log(count)
+                document.getElementById('user').innerHTML = count
+            })
+
+            function _scroll() {
+                    isScroll = true
+                    if (!document.getElementById('scroll').checked) isScroll = false
+                    console.log(isScroll)
+                }
+        function enter() { if (window.event.keyCode == 13) send() }
+
+        function send() {
+            let str = document.getElementById('chatting').value.replace(/\s/g, '')
+            let username = document.getElementById('name').value
+            if(str == '') return document.getElementById('chatting').value = ''
+            if(str.length > 5000) {
+                document.getElementById('chatting').value = ''
+                return alert('너무 깁니다. 제한길이 => 5000')
+            }
+            
+            let comment = {
+                msg : document.getElementById('chatting').value,
+                name : username
+            }
+            document.getElementById('chatting').value = ''
+            socket.emit('chat', comment)
+        }
+
+        function randomName() {
+            let str = ['a','b','c','d','e','f','g','h','i','j','k','l','n','m','o','p','q','r','s','t','u','v','w','x','y','z']
+            let num = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+            let username = ''
+            for (var i = 0; i < 5; i++) username += str[Math.ceil(Math.random() * str.length) - 1]
+            for (var i = 0; i < 3; i++) username += num[Math.ceil(Math.random() * num.length) - 1]
+            document.getElementById('showUserName').innerText = username
+            return username
+        }
+
+        function check() {
+            if(!document.getElementById('Anonymous').checked) {
+                username = document.getElementById('next').value
+                document.getElementById('showUserName').innerText = username
+            }
+            if(document.getElementById('Anonymous').checked) document.getElementById('name').value = randomName()
+        }
+    </script>
+    
+    <div>
+        <div id="chatarea" style="overflow-y:auto; overflow-x:hidden; width:100%; height:500px;">
+            <table id = "chat">
+            </table>
+        </div>
+        
+        <input type="text" id="chatting" onkeyup="enter()">
+        <input type="hidden" id="name" value="<%= name%>">
+        <input type="hidden" id="next" value="<%= name%>"><br />
+        <h3 id="showUserName"></h3><br />
+        <input type="submit" value="보내기" onclick="send()">
+        익명 : <input type="checkbox" id="Anonymous" onclick="check()"><br />
+        자동 스크롤 : <input type="checkbox" id="scroll" onclick="_scroll()" checked>
+        <br />
+        <input type="button" id="btn" value="전체 지우기" onclick="document.getElementById('chat').innerHTML = ''">
+        <br />
+        <a href="/logout">logout</a>
+        <br />
+        <div style="display: flex;"><h4>접속된 유저 : </h4><h4 id="user"></h4></div>
+    </div>
+</body>
+</html>
