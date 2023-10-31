@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
-const session = require('express-session')
-const FileStore = require('session-file-store')(session)
+// const session = require('express-session')
+// const FileStore = require('session-file-store')(session)
 const bp = require('body-parser')
 
 const main = require('./routers/index')
@@ -15,25 +15,25 @@ const server = app.listen(3000, () => {
 
 var userCount = 0
 
-const io = require('socket.io').listen(server)
+const io = require('socket.io')(server).listen(1100)
 
 app.set('views', __dirname + '/routers/html')
 app.set('view engine','ejs')
 
-app.use(session({
-    secret: 'keyboard cat',
-    resave: false,
-    saveUninitialized: true,
-    store: new FileStore()
-}))
+// app.use(session({
+//     secret: 'keyboard cat',
+//     resave: false,
+//     saveUninitialized: true,
+//     store: new FileStore()
+// }))
 app.post('*', bp.urlencoded({ extended: false}))
 app.get('/', main)
 app.get('/login', (req, res) => {res.sendFile(__dirname + '/routers/html/login.html')})
 app.get('/sign_up', (req, res) => {res.sendFile(__dirname + '/routers/html/sign_up.html')})
 app.get('/logout', logout)
 
-app.post('/sign_up_process', sign_up_process)
-app.post('/login_process', login_process)
+// app.post('/sign_up_process', sign_up_process)
+// app.post('/login_process', login_process)
 
 io.on('connection', (socket) => {
     userCount++
